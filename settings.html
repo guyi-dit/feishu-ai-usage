@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>飞书 AI 用量查询设置</title>
+<style>
+  body {
+    margin: 0;
+    padding: 16px;
+    color: var(--text-primary, #1a1a1a);
+    font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  h2 { margin: 0 0 8px; font-size: 18px; }
+  h3 { margin: 0 0 8px; font-size: 15px; }
+  p {
+    margin: 0 0 12px;
+    color: var(--text-secondary, #666);
+    line-height: 1.55;
+  }
+  .checklist {
+    margin: 14px 0;
+    padding: 12px;
+    background: var(--surface, rgba(127, 127, 127, 0.08));
+    border: 1px solid var(--border-default, #d9d9d9);
+    border-radius: 8px;
+  }
+  .checklist ol { margin: 0; padding-left: 20px; }
+  .checklist li { margin: 5px 0; line-height: 1.45; }
+  .scopes {
+    margin: 10px 0;
+    padding: 8px 10px;
+    background: var(--code-block-bg, rgba(127, 127, 127, 0.08));
+    border-radius: 6px;
+  }
+  .scopes code {
+    display: block;
+    margin: 3px 0;
+    overflow-wrap: anywhere;
+    color: var(--text-primary, #1a1a1a);
+  }
+  .portal {
+    margin-top: 9px;
+    color: var(--text-secondary, #666);
+    line-height: 1.45;
+  }
+  .portal code { overflow-wrap: anywhere; color: var(--text-primary, #1a1a1a); }
+  label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: 600;
+  }
+  input {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0 0 10px;
+    padding: 9px 10px;
+    color: inherit;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border-default, #d9d9d9);
+    border-radius: 6px;
+  }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  button {
+    padding: 8px 12px;
+    color: inherit;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border-default, #d9d9d9);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button:disabled { cursor: default; opacity: 0.55; }
+  #save {
+    color: var(--button-primary-text, #fff);
+    background: var(--button-primary-bg, #3370ff);
+    border-color: transparent;
+  }
+  #status {
+    margin-top: 12px;
+    padding: 9px 10px;
+    color: var(--text-secondary, #555);
+    background: var(--surface, rgba(127, 127, 127, 0.08));
+    border-radius: 6px;
+    line-height: 1.45;
+  }
+  #status[data-state="success"] { color: var(--success-text, #16803a); }
+  #status[data-state="error"] { color: var(--danger-text, #c0362c); }
+</style>
+<h2>飞书 AI 用量查询</h2>
+<p>填写你自己的飞书自建应用 App ID 和 App Secret。App Secret 只保存在 Cindy 主机的加密保险库；Cindy 会自动换取短期 tenant_access_token，无需手工续期。</p>
+<section class="checklist">
+  <h3>使用前检查</h3>
+  <ol>
+    <li>创建企业自建应用，并确认租户和应用已加入 AI 用量 OpenAPI 灰度。</li>
+    <li>在权限管理中开通以下权限：</li>
+  </ol>
+  <div class="scopes">
+    <code>admin:ai_usage_detail:read</code>
+    <code>contact:contact.base:readonly</code>
+    <code>contact:user.base:readonly</code>
+    <code>contact:user.email:readonly</code>
+    <code>contact:user.employee_id:readonly</code>
+  </div>
+  <ol start="3">
+    <li>将应用的通讯录数据权限范围设置为全体成员或需要分析的部门。</li>
+    <li>发布包含上述权限的应用版本。</li>
+  </ol>
+  <div class="portal">飞书开发者后台：<code>https://open.feishu.cn/app</code></div>
+</section>
+<label for="appId">飞书 App ID</label>
+<input id="appId" type="text" autocomplete="off" placeholder="飞书 App ID，例如 cli_xxxxx">
+<label for="secret">飞书 App Secret</label>
+<input id="secret" type="password" autocomplete="off" placeholder="粘贴 App Secret">
+<div class="actions">
+  <button id="save" type="button">保存配置</button>
+  <button id="clear" type="button">清除</button>
+</div>
+<div id="status">正在读取配置状态…</div>
+<script src="/settings.js"></script>
+</html>

@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 2,
+  "id": "feishu-ai-usage",
+  "name": "飞书 AI 用量查询",
+  "description": "使用用户自己配置的飞书自建应用查询 AI 用量并映射成员姓名。使用前需开通 AI 用量和通讯录权限、配置数据范围、发布应用并加入灰度。",
+  "whenToUse": "需要用自己配置的飞书自建应用查询部门、成员或应用的 AI 用量汇总与用量日志时。",
+  "version": "2.2.0",
+  "author": "XD-GUYI",
+  "kind": "chip",
+  "entry": "main.js",
+  "settingsHtml": "settings.html",
+  "command": "feishu-ai-usage",
+  "slots": [
+    "tool",
+    "node"
+  ],
+  "node": {
+    "entry": "node/worker.cjs",
+    "protocol": "json-rpc-stdio",
+    "lifecycle": "on-demand",
+    "idleTimeoutSeconds": 120,
+    "secretBindings": [
+      {
+        "key": "app_secret",
+        "label": "飞书 App Secret",
+        "hint": "先按设置页清单开通 AI 用量与通讯录权限、配置数据范围并发布；App Secret 由 Cindy 加密保存",
+        "url": "https://open.feishu.cn/app",
+        "methods": ["query_usage_detail", "batch_get_users"]
+      }
+    ]
+  },
+  "setup": {
+    "requires": [
+      { "anyOf": ["secret:app_secret"] },
+      { "anyOf": [{ "kv": "app_id", "label": "飞书 App ID" }] }
+    ]
+  },
+  "tools": [
+    {
+      "name": "query_usage_detail",
+      "description": "只读查询飞书租户内一个或多个部门、成员、用户组或应用的 AI 用量汇总。需要已开通灰度权限与 admin:ai_usage_detail:read；最多 100 个实体、最多 1 个部门、时间跨度不超过 365 天。返回飞书原始 JSON。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date_start": {
+            "type": "integer",
+            "description": "查询开始时间，Unix 秒时间戳（UTC+8 口径）"
+          },
+          "date_end": {
+            "type": "integer",
+            "description": "查询结束时间，Unix 秒时间戳（UTC+8 口径）"
+          },
+          "subject_type": {
+            "type": "integer",
+            "enum": [1, 2, 3],
+            "description": "汇总维度：1 人、2 部门、3 应用"
+          },
+          "subjects": {
+            "type": "array",
+            "minItems": 1,
+            "description": "查询主体列表；entity_type 与 subject_type 必须匹配",
+            "items": {
+              "type": "object",
+              "properties": {
+                "entity_type": {
+                  "type": "integer",
+                  "enum": [1, 2, 4, 5, 6, 7, 8],
+                  "description": "1 部门、2 用户、4 用户组、5 企业应用、6 Aily 工作流、7 aPaaS 应用、8 Aily 智能体"
+                },
+                "entity_ids": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "type": "string" },
+                  "description": "实体 ID；部门根节点可传 0，应用类型可传 -1 表示全部"
+                }
+              },
+              "required": ["entity_type", "entity_ids"],
+              "additionalProperties": false
+            }
+          },
+          "user_id_type": {
+            "type": "string",
+            "enum": ["open_id", "union_id", "user_id"],
+            "description": "用户 ID 类型，默认 open_id"
+          },
+          "department_id_type": {
+            "type": "string",
+            "enum": ["department_id", "open_department_id"],
+            "description": "部门 ID 类型，默认 open_department_id"
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "分页大小，默认 100"
+          },
+          "page_token": {
+            "type": "string",
+            "description": "上一页返回的分页标记"
+          }
+        },
+        "required": [
+          "date_start",
+          "date_end",
+          "subject_type",
+          "subjects"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "batch_get_users",
+      "description": "按飞书用户 ID 批量查询真实姓名和邮箱。只读；单次最多 50 人，需要通讯录基础、用户基本信息、邮箱和 user ID 字段权限，且数据权限范围需覆盖目标成员。返回飞书原始 JSON。",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "user_ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": { "type": "string" },
+            "description": "飞书用户 ID 列表，来自 AI 用量接口的结果"
+          },
+          "user_id_type": {
+            "type": "string",
+            "enum": ["open_id", "user_id"],
+            "description": "ID 类型；同一应用内优先使用 open_id"
+          }
+        },
+        "required": ["user_ids"],
+        "additionalProperties": false
+      }
+    }
+  ]
+}
