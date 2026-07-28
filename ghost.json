@@ -2,9 +2,9 @@
   "schemaVersion": 2,
   "id": "feishu-ai-usage",
   "name": "飞书 AI 用量查询",
-  "description": "使用用户自己配置的飞书自建应用查询 AI 用量并映射成员姓名。使用前需开通 AI 用量和通讯录权限、配置数据范围、发布应用并加入灰度。",
+  "description": "使用用户自己配置的飞书自建应用查询 AI 用量并映射成员姓名、邮箱和所属部门。使用前需开通 AI 用量和通讯录权限、配置数据范围、发布应用并加入灰度。",
   "whenToUse": "需要用自己配置的飞书自建应用查询部门、成员或应用的 AI 用量汇总与用量日志时。",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "author": "XD-GUYI",
   "kind": "chip",
   "entry": "main.js",
@@ -110,7 +110,7 @@
     },
     {
       "name": "batch_get_users",
-      "description": "按飞书用户 ID 批量查询真实姓名和邮箱。只读；单次最多 50 人，需要通讯录基础、用户基本信息、邮箱和 user ID 字段权限，且数据权限范围需覆盖目标成员。返回飞书原始 JSON。",
+      "description": "按飞书用户 ID 批量查询真实姓名、邮箱和所属部门。只读；单次最多 50 人，需要通讯录基础、用户基本信息、邮箱、user ID、用户组织架构和部门基础信息权限，且数据权限范围需覆盖目标成员。返回用户信息，并附加 department_names 和 primary_department_name。",
       "parameters": {
         "type": "object",
         "properties": {

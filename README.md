@@ -1,6 +1,6 @@
 # 飞书 AI 用量查询
 
-由 XD-GUYI 开发的 Cindy 插件。使用用户自己的飞书企业自建应用，查询部门、成员或应用的 AI 用量，并将成员 ID 映射为真实姓名和邮箱。
+由 XD-GUYI 开发的 Cindy 插件。使用用户自己的飞书企业自建应用，查询部门、成员或应用的 AI 用量，并将成员 ID 映射为真实姓名、邮箱和所属部门。
 
 ## 安装
 
@@ -16,6 +16,8 @@ contact:contact.base:readonly
 contact:user.base:readonly
 contact:user.email:readonly
 contact:user.employee_id:readonly
+contact:user.department:readonly
+contact:department.base:readonly
 ```
 
 还需要：
@@ -38,7 +40,7 @@ App Secret 由 Cindy 加密保存，只在查询时临时注入插件 Worker。�
 ## 使用示例
 
 ```text
-查询昨天飞书 AI 通用额度消耗 Top10，显示真实姓名。
+查询昨天飞书 AI 通用额度消耗 Top10，显示真实姓名和所属部门。
 ```
 
 也可以显式使用：
@@ -61,4 +63,4 @@ settings.js        设置状态与凭证保存逻辑
 
 - 不要把 App Secret 写入源码、聊天消息或 Git 仓库。
 - 每位用户应配置自己有权管理的飞书应用。
-- 姓名和邮箱属于组织通讯录数据，请仅在授权范围内使用。
+- 姓名、邮箱和所属部门属于组织通讯录数据，请仅在授权范围内使用。

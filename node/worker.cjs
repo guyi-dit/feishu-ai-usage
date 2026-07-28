@@ -5,6 +5,7 @@ const APP_ID_PATTERN = /^cli_[A-Za-z0-9]+$/;
 const TOKEN_PATH = '/open-apis/auth/v3/tenant_access_token/internal';
 const QUERY_PATH = '/open-apis/admin/v1/ai_usage_detail/query';
 const USER_PATH = '/open-apis/contact/v3/users/';
+const DEPARTMENT_BATCH_PATH = '/open-apis/contact/v3/departments/batch';
 
 function reply(message) {
   process.stdout.write(JSON.stringify(message) + '\n');
@@ -193,6 +194,36 @@ async function queryUsageDetail(input, injectedSecrets) {
   return response;
 }
 
+async function batchGetDepartments(departmentIds, token) {
+  const departmentById = new Map();
+  for (let offset = 0; offset < departmentIds.length; offset += 50) {
+    const query = new URLSearchParams();
+    departmentIds.slice(offset, offset + 50).forEach(function (departmentId) {
+      query.append('department_ids', departmentId);
+    });
+    query.set('department_id_type', 'department_id');
+    query.set('user_id_type', 'open_id');
+
+    const response = await requestJson(DEPARTMENT_BATCH_PATH + '?' + query.toString(), {
+      method: 'GET',
+      operation: 'contact',
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (response.code !== 0) {
+      throw new Error(describeFeishuFailure(response, 200, 'contact'));
+    }
+    const departments = response.data && Array.isArray(response.data.items)
+      ? response.data.items
+      : [];
+    departments.forEach(function (department) {
+      if (department && department.department_id && department.name) {
+        departmentById.set(String(department.department_id), String(department.name));
+      }
+    });
+  }
+  return departmentById;
+}
+
 async function batchGetUsers(input, injectedSecrets) {
   const credentials = getCredentials(input, injectedSecrets);
   if (!Array.isArray(input.user_ids) || input.user_ids.length < 1
@@ -219,6 +250,35 @@ async function batchGetUsers(input, injectedSecrets) {
     }
     if (response.data && response.data.user) items.push(response.data.user);
   }
+
+  const departmentIds = Array.from(new Set(items.flatMap(function (user) {
+    return Array.isArray(user.department_ids)
+      ? user.department_ids.map(String).filter(Boolean)
+      : [];
+  })));
+  const departmentById = await batchGetDepartments(departmentIds, token);
+
+  items.forEach(function (user) {
+    const userDepartmentIds = Array.isArray(user.department_ids)
+      ? user.department_ids.map(String).filter(Boolean)
+      : [];
+    user.department_names = userDepartmentIds
+      .map(function (departmentId) { return departmentById.get(departmentId); })
+      .filter(Boolean);
+
+    const primaryOrder = Array.isArray(user.orders)
+      ? user.orders.find(function (order) {
+        return order && order.is_primary_dept === true && order.department_id;
+      })
+      : null;
+    const primaryDepartmentId = primaryOrder
+      ? String(primaryOrder.department_id)
+      : userDepartmentIds[0];
+    user.primary_department_name = primaryDepartmentId
+      ? departmentById.get(primaryDepartmentId) || user.department_names[0] || ''
+      : '';
+  });
+
   return { code: 0, data: { items }, msg: 'success' };
 }
 
